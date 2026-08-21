@@ -1,0 +1,42 @@
+{
+  "name": "noted-bujo",
+  "version": "1.0.0",
+  "description": "Noted - Bullet Journal Planner for Students",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:dir": "electron-builder --win --dir"
+  },
+  "author": "Noted",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "sql.js": "^1.11.0",
+    "jspdf": "^2.5.2"
+  },
+  "build": {
+    "appId": "com.noted.bujo",
+    "productName": "Noted BuJo",
+    "win": {
+      "target": "nsis",
+      "icon": "src/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "pdf-generator.js",
+      "src/**/*",
+      "node_modules/sql.js/**/*",
+      "node_modules/jspdf/**/*"
+    ],
+    "extraResources": []
+  }
+}

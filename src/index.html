@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noted BuJo</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top App Bar -->
+  <header id="topBar" class="topbar">
+    <button id="btnBack" class="topbar-icon hidden" onclick="goBack()">
+      <span class="material-icons-outlined">arrow_back</span>
+    </button>
+    <h1 class="topbar-title">Noted</h1>
+    <div class="topbar-actions">
+      <button id="btnSettings" class="topbar-icon" onclick="navigate('settings')">
+        <span class="material-icons-outlined">settings</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="mainContent" class="main-content">
+
+    <!-- ===== License ===== -->
+    <section id="screen-license" class="screen">
+      <div class="license-container">
+        <div class="license-icon-area">
+          <span class="material-icons-outlined license-main-icon">vpn_key</span>
+        </div>
+        <h2 class="screen-title" style="text-align:center">Noted BuJo</h2>
+        <p class="body-small muted center-text" style="margin-bottom:24px">Bitte gib deinen Lizenzschlüssel ein, um die App zu aktivieren.</p>
+        <div class="card" style="max-width:420px;margin:0 auto">
+          <div class="form-field">
+            <label class="form-label">Lizenzschlüssel</label>
+            <input type="text" id="licenseKeyInput" class="text-input" placeholder="NTD-XXXX-XXXX-XXXX" maxlength="18" spellcheck="false" autocomplete="off" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px">
+          </div>
+          <div id="licenseError" class="license-error hidden"></div>
+          <div id="licenseSuccess" class="license-success hidden">
+            <span class="material-icons-outlined" style="font-size:20px;margin-right:6px">check_circle</span>
+            Schlüssel gültig! wird gespeichert...
+          </div>
+          <button class="btn-filled full-width" onclick="submitLicenseKey()" style="margin-top:8px">
+            <span class="material-icons-outlined btn-icon">lock_open</span>
+            Aktivieren
+          </button>
+        </div>
+        <p class="body-small muted center-text" style="margin-top:24px">Hast du keinen Schlüssel? Kontaktiere den Administrator.</p>
+      </div>
+    </section>
+
+    <!-- ===== Dashboard ===== -->
+    <section id="screen-dashboard" class="screen hidden">
+      <h2 class="screen-title">Willkommen zurueck!</h2>
+      <div class="search-bar">
+        <span class="material-icons-outlined search-icon">search</span>
+        <input type="text" id="dashboardSearch" class="search-input" placeholder="Aufgaben, Termine oder Themen suchen...">
+      </div>
+      <div id="searchResultsCard" class="card hidden">
+        <div class="card-header">
+          <span class="material-icons-outlined card-header-icon">manage_search</span>
+          <h3 class="card-header-text">Suchergebnisse</h3>
+        </div>
+        <div id="searchResults"></div>
+      </div>
+      <div id="dashboardMain">
+      <div class="card">
+        <div class="card-header">
+          <span class="material-icons-outlined card-header-icon">today</span>
+          <h3 id="dashboardDate" class="card-header-text"></h3>
+        </div>
+        <div id="dashboardLoading" class="loading-indicator">
+          <div class="spinner"></div>
+        </div>
+        <div id="dashboardContent" class="hidden">
+          <h4 class="section-label">Fokus-Aufgaben</h4>
+          <div id="dashboardTasks"></div>
+          <button class="btn-filled" onclick="navigateToTodayTag()">
+            <span class="material-icons-outlined btn-icon">open_in_new</span>
+            Zum Tagesplan
+          </button>
+        </div>
+        <div id="dashboardEmpty" class="hidden empty-state">
+          <span class="material-icons-outlined empty-icon">event_busy</span>
+          <span>Kein Plan fuer heute vorhanden.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="material-icons-outlined card-header-icon">event_upcoming</span>
+          <h3 class="card-header-text">Kommende Termine</h3>
+        </div>
+        <div id="dashboardTermine"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="material-icons-outlined card-header-icon">repeat</span>
+          <h3 class="card-header-text">Heutige Habits</h3>
+        </div>
+        <div id="dashboardHabits"></div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===== Index ===== -->
+    <section id="screen-index" class="screen hidden">
+      <h2 class="screen-title">Inhaltsverzeichnis</h2>
+      <div id="indexList" class="index-list"></div>
+    </section>
+
+    <!-- ===== JahresPlan ===== -->
+    <section id="screen-jahresplan" class="screen hidden">
+      <div id="jahresplanSetup" class="hidden">
+        <h2 class="screen-title">Neues Schuljahr anlegen</h2>
+        <div class="card center-content">
+          <div class="form-field">
+            <label class="form-label">Startjahr</label>
+            <input type="number" id="sjStartYear" value="2026" class="text-input">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Endjahr</label>
+            <input type="number" id="sjEndYear" value="2027" class="text-input">
+          </div>
+          <button class="btn-filled" onclick="setupSchuljahr()">
+            <span class="material-icons-outlined btn-icon">autorenew</span>
+            Schuljahr & Wochenraster generieren
+          </button>
+        </div>
+      </div>
+      <div id="jahresplanContent" class="hidden">
+        <div class="section-top-row">
+          <div class="section-top-left">
+            <h2 id="jahresplanTitle" class="screen-title"></h2>
+            <p id="jahresplanDateRange" class="body-small"></p>
+          </div>
+          <div class="section-top-right">
+            <span id="jahresplanPage" class="page-label"></span>
+            <button class="topbar-icon" title="Stundenplan" onclick="navigate('stundenplan')">
+              <span class="material-icons-outlined">schedule</span>
+            </button>
+            <button class="topbar-icon" title="Faecher" onclick="navigate('subjects')">
+              <span class="material-icons-outlined">edit</span>
+            </button>
+          </div>
+        </div>
+        <h3 class="section-label">Monate</h3>
+        <div id="jahresplanMonate" class="list-section"></div>
+        <h3 class="section-label">Wochen</h3>
+        <div id="jahresplanWochen" class="list-section"></div>
+
+        <h3 class="section-label">Ferien</h3>
+        <div id="jahresplanFerien" class="list-section"></div>
+        <button class="btn-outlined full-width" onclick="showAddFerienDialog()">
+          <span class="material-icons-outlined btn-icon">add</span>
+          Ferien hinzufuegen
+        </button>
+
+        <h3 class="section-label">Schulfreie Tage</h3>
+        <div id="jahresplanFreieTage" class="list-section"></div>
+        <button class="btn-outlined full-width" onclick="showAddFreierTagDialog()">
+          <span class="material-icons-outlined btn-icon">add</span>
+          Freien Tag hinzufuegen
+        </button>
+
+        <h3 class="section-label">Termine (Klausuren, Abgaben)</h3>
+        <div id="jahresplanTermine" class="list-section"></div>
+        <button class="btn-outlined full-width" onclick="showAddTerminDialog()">
+          <span class="material-icons-outlined btn-icon">add</span>
+          Termin hinzufuegen
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== MonatsPlan ===== -->
+    <section id="screen-monatsplan" class="screen hidden">
+      <div id="monatsplanLoading" class="loading-indicator"><div class="spinner"></div></div>
+      <div id="monatsplanContent" class="hidden">
+        <div class="section-top-row">
+          <h2 id="monatsplanTitle" class="screen-title"></h2>
+          <span id="monatsplanPage" class="page-label"></span>
+        </div>
+        <div class="card no-padding">
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </div>
+        <h3 class="section-label">Ueberblick</h3>
+        <textarea id="monatUeberblick" class="textarea-input" placeholder="Ziele, Termine, Ueberblick..."></textarea>
+        <h3 class="section-label">Monatsreflexion</h3>
+        <textarea id="monatReflexion" class="textarea-input" placeholder="Was lief gut? Was kann besser werden?"></textarea>
+        <button class="btn-filled" onclick="saveMonatData()">
+          <span class="material-icons-outlined btn-icon">save</span>
+          Speichern
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== WochenPlan ===== -->
+    <section id="screen-wochenplan" class="screen hidden">
+      <div id="wochenplanLoading" class="loading-indicator"><div class="spinner"></div></div>
+      <div id="wochenplanEmpty" class="hidden center-content">
+        <span class="material-icons-outlined empty-icon">date_range</span>
+        <p>Keine Daten fuer diese Woche.</p>
+        <button class="btn-filled" onclick="createDummyWeekData()">
+          <span class="material-icons-outlined btn-icon">add_box</span>
+          Dummy-Daten erstellen
+        </button>
+      </div>
+      <div id="wochenplanContent" class="hidden">
+        <div class="section-top-row">
+          <h2 id="wochenplanTitle" class="screen-title"></h2>
+          <span id="wochenplanPage" class="page-label"></span>
+        </div>
+        <p id="wochenplanPlanungstermin" class="body-small muted"></p>
+
+        <h3 class="section-label">Input-Phasen</h3>
+        <div id="wochenplanInputPhasen" class="list-section"></div>
+
+        <h3 class="section-label">Selbsterarbeitungs-Phasen</h3>
+        <div id="wochenplanSelbstPhasen" class="list-section"></div>
+
+        <h3 class="section-label">Themen</h3>
+        <button class="btn-outlined full-width" onclick="showAddThemaDialog()">
+          <span class="material-icons-outlined btn-icon">add</span>
+          Neues Thema hinzufuegen
+        </button>
+        <p class="body-small muted" style="margin: 8px 0 12px;">Tippe ein Thema an und dann einen Tag zur schnellen Zuweisung.</p>
+        <div id="wochenplanThemen" class="list-section"></div>
+
+        <h3 class="section-label">Private Termine</h3>
+        <div id="wochenplanPrivateTermine" class="list-section"></div>
+        <button class="btn-outlined full-width" onclick="showAddPrivaterTerminDialog()">
+          <span class="material-icons-outlined btn-icon">add</span>
+          Privaten Termin hinzufuegen
+        </button>
+
+        <h3 class="section-label">Tage</h3>
+        <div id="wochenplanTage" class="list-section"></div>
+
+        <h3 class="section-label">Wochenreflexion</h3>
+        <textarea id="wochenReflexion" class="textarea-input" placeholder="Wie war deine Woche?"></textarea>
+        <button class="btn-filled" onclick="saveWochenReflexion()">
+          <span class="material-icons-outlined btn-icon">save</span>
+          Reflexion speichern
+        </button>
+
+        <h3 class="section-label">Migration</h3>
+        <p class="body-small muted">Verschiebe alle offenen Aufgaben dieser Woche in die naechste Woche.</p>
+        <button class="btn-tonal full-width" onclick="migrateTasks()" style="margin-top:8px">
+          <span class="material-icons-outlined btn-icon">forward</span>
+          Offene Aufgaben migrieren
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== TagesPlan ===== -->
+    <section id="screen-tagesplan" class="screen hidden">
+      <div id="tagesplanLoading" class="loading-indicator"><div class="spinner"></div></div>
+      <div id="tagesplanContent" class="hidden">
+        <div class="section-top-row">
+          <h2 id="tagesplanTitle" class="screen-title"></h2>
+          <span id="tagesplanPage" class="page-label"></span>
+        </div>
+
+        <h3 class="section-label">Grosse Aufgaben (Fokus)</h3>
+        <div class="input-row">
+          <input type="text" id="newBigTask" placeholder="Neue grosse Aufgabe" class="text-input flex-1">
+          <button class="fab-small" onclick="addBigTask()">
+            <span class="material-icons-outlined">add</span>
+          </button>
+        </div>
+        <div id="tagesplanBigTasks" class="task-list"></div>
+
+        <h3 class="section-label">Schnellaufgaben (&lt; 2 Min)</h3>
+        <div class="input-row">
+          <input type="text" id="newQuickTask" placeholder="Schnellaufgabe hinzufuegen" class="text-input flex-1">
+          <button class="fab-small" onclick="addQuickTask()">
+            <span class="material-icons-outlined">play_arrow</span>
+          </button>
+        </div>
+        <div id="tagesplanQuickTasks" class="task-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== StundenPlan ===== -->
+    <section id="screen-stundenplan" class="screen hidden">
+      <div class="section-top-row">
+        <h2 class="screen-title">Stundenplan</h2>
+        <span id="stundenplanSchuljahr" class="page-label"></span>
+      </div>
+      <p class="body-small muted" style="margin-bottom:12px">Tippe auf eine Zelle, um einen Slot zu setzen oder zu bearbeiten.</p>
+      <div class="card no-padding">
+        <table class="stundenplan-grid">
+          <thead>
+            <tr>
+              <th class="sp-hour-head"></th>
+              <th>Mo</th><th>Di</th><th>Mi</th><th>Do</th><th>Fr</th>
+            </tr>
+          </thead>
+          <tbody id="stundenplanBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== HabitTracker ===== -->
+    <section id="screen-habits" class="screen hidden">
+      <div class="section-top-row">
+        <h2 class="screen-title">Habit-Tracker</h2>
+        <div class="inline-row">
+          <button class="topbar-icon" onclick="habitWeekShift(-1)">
+            <span class="material-icons-outlined">chevron_left</span>
+          </button>
+          <span id="habitWeekLabel" class="page-label"></span>
+          <button class="topbar-icon" onclick="habitWeekShift(1)">
+            <span class="material-icons-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+      <div id="habitList" class="list-section"></div>
+      <button class="fab-extended" onclick="showAddHabitDialog()">
+        <span class="material-icons-outlined">add</span>
+      </button>
+    </section>
+
+    <!-- ===== Subject Manager ===== -->
+    <section id="screen-subjects" class="screen hidden">
+      <h2 class="screen-title">Faecher verwalten</h2>
+      <div id="subjectList" class="list-section"></div>
+      <button class="fab-extended" onclick="showAddSubjectDialog()">
+        <span class="material-icons-outlined">add</span>
+      </button>
+    </section>
+
+    <!-- ===== Subject Detail ===== -->
+    <section id="screen-subject-detail" class="screen hidden">
+      <h2 id="subjectDetailTitle" class="screen-title"></h2>
+      <div class="card">
+        <div class="form-field">
+          <label class="form-label">Lehrer / Dozent</label>
+          <div class="input-row">
+            <input type="text" id="subjectTeacher" class="text-input flex-1" placeholder="Lehrername">
+            <button class="fab-small" onclick="saveSubjectTeacher()">
+              <span class="material-icons-outlined">check</span>
+            </button>
+          </div>
+        </div>
+        <div class="inline-row">
+          <span class="body-text">Farbe:</span>
+          <span id="subjectColorCircle" class="color-swatch-lg"></span>
+        </div>
+      </div>
+      <h3 class="section-label">Module / Themen</h3>
+      <div class="input-row">
+        <input type="text" id="newModuleText" class="text-input flex-1" placeholder="Neues Modul hinzufuegen">
+        <button class="fab-small" onclick="addModule()">
+          <span class="material-icons-outlined">add</span>
+        </button>
+      </div>
+      <div id="subjectModuleList" class="list-section"></div>
+    </section>
+
+    <!-- ===== Settings ===== -->
+    <section id="screen-settings" class="screen hidden">
+      <h2 class="screen-title">Einstellungen</h2>
+
+      <h3 class="section-label">Profil</h3>
+      <div class="card">
+        <div class="form-field">
+          <label class="form-label">Name</label>
+          <input type="text" id="profileName" class="text-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Schule</label>
+          <input type="text" id="profileSchule" class="text-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Abschluss</label>
+          <input type="text" id="profileAbschluss" class="text-input" placeholder="z.B. Abitur (2027)">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Studiengang (optional)</label>
+          <input type="text" id="profileStudiengang" class="text-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Semester (optional)</label>
+          <input type="text" id="profileSemester" class="text-input" placeholder="z.B. 3. Semester">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Universitaet (optional)</label>
+          <input type="text" id="profileUni" class="text-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">E-Mail (optional)</label>
+          <input type="email" id="profileEmail" class="text-input">
+        </div>
+        <button class="btn-filled full-width" onclick="saveProfile()">
+          <span class="material-icons-outlined btn-icon">save</span>
+          Profil speichern
+        </button>
+      </div>
+
+      <h3 class="section-label">Darstellung</h3>
+      <div class="card">
+        <div class="theme-row">
+          <button id="themeBtn-light" class="theme-option" onclick="applyThemeChoice('light')">Hell</button>
+          <button id="themeBtn-dark" class="theme-option" onclick="applyThemeChoice('dark')">Dunkel</button>
+          <button id="themeBtn-system" class="theme-option" onclick="applyThemeChoice('system')">System</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="material-icons-outlined card-header-icon">notifications</span>
+          <div class="card-header-content">
+            <span class="card-header-text">Benachrichtigungen</span>
+            <span class="body-small muted">Erinnerung an Wochenplanung</span>
+          </div>
+          <label class="md3-switch">
+            <input type="checkbox" id="notifToggle" checked>
+            <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+
+      <h3 class="section-label">PDF-Einstellungen</h3>
+      <div class="card">
+        <div class="form-field">
+          <label class="form-label">PDF-Titel</label>
+          <input type="text" id="pdfTitle" class="text-input" placeholder="BULLET JOURNAL">
+        </div>
+        <div class="inline-row">
+          <span class="body-text">Akzentfarbe:</span>
+          <input type="color" id="pdfAccentColor" value="#E67E22" class="color-input">
+          <span class="body-text" style="margin-left:16px">Text:</span>
+          <input type="color" id="pdfTextColor" value="#2C3E50" class="color-input">
+          <span class="body-text" style="margin-left:16px">Gitter:</span>
+          <input type="color" id="pdfGridColor" value="#DCDDE1" class="color-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Gitterstil (Stundenplan)</label>
+          <select id="pdfGridStyle" class="text-input">
+            <option value="DOT">Punkte</option>
+            <option value="LINE">Linien</option>
+            <option value="BLANK">Leer</option>
+          </select>
+        </div>
+        <h4 class="section-label">Bereiche</h4>
+        <label class="md3-checkbox-row">
+          <input type="checkbox" id="pdfShowCover" checked>
+          <span class="md3-checkbox-mark"></span>
+          <span>Deckblatt</span>
+        </label>
+        <label class="md3-checkbox-row">
+          <input type="checkbox" id="pdfShowToc" checked>
+          <span class="md3-checkbox-mark"></span>
+          <span>Inhaltsverzeichnis</span>
+        </label>
+        <label class="md3-checkbox-row">
+          <input type="checkbox" id="pdfShowAblauf" checked>
+          <span class="md3-checkbox-mark"></span>
+          <span>Schuljahresablaufplan</span>
+        </label>
+        <label class="md3-checkbox-row">
+          <input type="checkbox" id="pdfShowWochen" checked>
+          <span class="md3-checkbox-mark"></span>
+          <span>Wochenplaene</span>
+        </label>
+        <label class="md3-checkbox-row">
+          <input type="checkbox" id="pdfShowHabits" checked>
+          <span class="md3-checkbox-mark"></span>
+          <span>Habit-Tracker</span>
+        </label>
+        <label class="md3-checkbox-row">
+          <input type="checkbox" id="pdfShowStundenplan" checked>
+          <span class="md3-checkbox-mark"></span>
+          <span>Stundenplan</span>
+        </label>
+        <div class="input-row" style="margin-top:12px">
+          <button class="btn-tonal flex-1" onclick="savePdfSettings()">
+            <span class="material-icons-outlined btn-icon">save</span>
+            Speichern
+          </button>
+          <button class="btn-tonal flex-1" onclick="previewPdf()">
+            <span class="material-icons-outlined btn-icon">visibility</span>
+            Vorschau
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="section-label">Daten & Export</h3>
+      <button class="btn-tonal full-width" onclick="exportPdf()">
+        <span class="material-icons-outlined btn-icon">picture_as_pdf</span>
+        Plan als PDF exportieren
+      </button>
+
+      <div class="spacer-lg"></div>
+
+      <button class="btn-danger full-width" onclick="showClearDataDialog()">
+        <span class="material-icons-outlined btn-icon">delete_forever</span>
+        Alle Daten loeschen
+      </button>
+
+      <p class="body-small muted center-text" style="margin-top:24px">Noted Bujo v1.0.0</p>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav id="bottomNav" class="bottombar">
+    <button class="bottombar-item active" onclick="navigate('dashboard')">
+      <span class="material-icons-outlined bottombar-icon">home</span>
+      <span class="bottombar-label">Heute</span>
+    </button>
+    <button class="bottombar-item" onclick="navigate('index')">
+      <span class="material-icons-outlined bottombar-icon">menu_book</span>
+      <span class="bottombar-label">Index</span>
+    </button>
+    <button class="bottombar-item" onclick="navigate('jahresplan')">
+      <span class="material-icons-outlined bottombar-icon">calendar_month</span>
+      <span class="bottombar-label">Jahr</span>
+    </button>
+    <button class="bottombar-item" onclick="navigate('stundenplan')">
+      <span class="material-icons-outlined bottombar-icon">schedule</span>
+      <span class="bottombar-label">Plan</span>
+    </button>
+    <button class="bottombar-item" onclick="navigate('habits')">
+      <span class="material-icons-outlined bottombar-icon">repeat</span>
+      <span class="bottombar-label">Habits</span>
+    </button>
+  </nav>
+
+  <!-- FAB -->
+  <button id="fab" class="fab" onclick="showQuickAddDialog()">
+    <span class="material-icons-outlined fab-icon">add</span>
+  </button>
+
+  <!-- Dialog Overlay -->
+  <div id="dialogOverlay" class="overlay hidden" onclick="closeDialog()"></div>
+
+  <!-- Quick Add Dialog -->
+  <div id="quickAddDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Schnellaufnahme</h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <input type="text" id="quickAddText" class="text-input" placeholder="Aufgabe/Notiz">
+      </div>
+      <div class="form-field">
+        <input type="text" id="quickAddFach" class="text-input" placeholder="Fach (Optional)">
+      </div>
+      <label class="md3-checkbox-row">
+        <input type="checkbox" id="quickAddBig" class="md3-checkbox">
+        <span class="md3-checkbox-mark"></span>
+        <span>Grosse Aufgabe (Fokus)</span>
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmQuickAdd()">Hinzufuegen</button>
+    </div>
+  </div>
+
+  <!-- Add Subject Dialog -->
+  <div id="addSubjectDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">
+      <span class="material-icons-outlined" style="color:var(--md3-primary);vertical-align:middle;margin-right:8px">edit</span>
+      Neues Fach anlegen
+    </h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <label class="form-label">Name des Fachs</label>
+        <input type="text" id="addSubjectName" class="text-input">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Farbe waehlen</label>
+        <div id="colorPicker" class="color-picker-grid"></div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmAddSubject()">Speichern</button>
+    </div>
+  </div>
+
+  <!-- Add Thema Dialog -->
+  <div id="addThemaDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Neues Thema</h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <input type="text" id="themaName" class="text-input" placeholder="Bezeichnung">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Fach waehlen</label>
+        <select id="themaSubject" class="text-input" onchange="updateThemaModuleDropdown()"></select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Modul waehlen</label>
+        <select id="themaModule" class="text-input"></select>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmAddThema()">Hinzufuegen</button>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div id="confirmDialog" class="md3-dialog hidden">
+    <h3 id="confirmTitle" class="dialog-title"></h3>
+    <p id="confirmMessage" class="dialog-message"></p>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button id="confirmBtn" class="btn-text danger-text" onclick="confirmAction()">Loeschen</button>
+    </div>
+  </div>
+
+  <!-- Warning Dialog -->
+  <div id="warningDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">
+      <span class="material-icons-outlined" style="color:var(--md3-error);vertical-align:middle;margin-right:8px">warning</span>
+      Fokus-Warnung
+    </h3>
+    <p class="dialog-message">Du hast bereits mehr als 2 grosse Aufgaben fuer heute geplant. Bullet Journaling empfiehlt Fokus!</p>
+    <div class="dialog-actions">
+      <button class="btn-text primary-text" onclick="closeDialog()">Verstanden</button>
+    </div>
+  </div>
+
+  <!-- Slot Dialog (Stundenplan) -->
+  <div id="slotDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Stunde bearbeiten</h3>
+    <div class="dialog-body">
+      <p id="slotInfo" class="body-small muted" style="margin-bottom:8px"></p>
+      <div class="form-field">
+        <label class="form-label">Fach</label>
+        <div id="slotFachChips" class="chip-row"></div>
+        <input type="text" id="slotFachCustom" class="text-input" placeholder="Eigenes Fach..." style="margin-top:6px">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Raum</label>
+        <input type="text" id="slotRaum" class="text-input" placeholder="z.B. B201">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Lehrer</label>
+        <input type="text" id="slotLehrer" class="text-input" placeholder="Optional">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text danger-text" onclick="deleteSlot()">Loeschen</button>
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmSlot()">Speichern</button>
+    </div>
+  </div>
+
+  <!-- Habit Dialog -->
+  <div id="habitDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Neues Habit</h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <label class="form-label">Name</label>
+        <input type="text" id="habitName" class="text-input" placeholder="z.B. Sport">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Farbe waehlen</label>
+        <div id="habitColorPicker" class="color-picker-grid"></div>
+      </div>
+      <div class="inline-row">
+        <span class="body-text">Start:</span>
+        <input type="time" id="habitStartTime" class="text-input time-input">
+        <span class="body-text" style="margin-left:12px">Ende:</span>
+        <input type="time" id="habitEndTime" class="text-input time-input">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmAddHabit()">Hinzufuegen</button>
+    </div>
+  </div>
+
+  <!-- Ferien Dialog -->
+  <div id="ferienDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Ferien hinzufuegen</h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <label class="form-label">Bezeichnung</label>
+        <input type="text" id="ferienName" class="text-input" placeholder="z.B. Herbstferien">
+      </div>
+      <div class="inline-row">
+        <div class="form-field flex-1">
+          <label class="form-label">Von</label>
+          <input type="date" id="ferienStart" class="text-input">
+        </div>
+        <div class="form-field flex-1">
+          <label class="form-label">Bis</label>
+          <input type="date" id="ferienEnd" class="text-input">
+        </div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmAddFerien()">Hinzufuegen</button>
+    </div>
+  </div>
+
+  <!-- Freier Tag Dialog -->
+  <div id="freierTagDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Schulfreier Tag</h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <label class="form-label">Datum</label>
+        <input type="date" id="freierTagDate" class="text-input">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmAddFreierTag()">Hinzufuegen</button>
+    </div>
+  </div>
+
+  <!-- Termin Dialog -->
+  <div id="terminDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Termin hinzufuegen</h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <label class="form-label">Beschreibung</label>
+        <input type="text" id="terminDesc" class="text-input" placeholder="z.B. Notenstopp Klasse 13">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Fach (optional)</label>
+        <input type="text" id="terminFach" class="text-input">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Art</label>
+        <select id="terminType" class="text-input">
+          <option value="klausur">Klausur / Pruefung</option>
+          <option value="abgabe">Abgabe / Frist</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Datum</label>
+        <input type="date" id="terminDate" class="text-input">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmAddTermin()">Hinzufuegen</button>
+    </div>
+  </div>
+
+  <!-- Privater Termin Dialog -->
+  <div id="privaterTerminDialog" class="md3-dialog hidden">
+    <h3 class="dialog-title">Privater Termin</h3>
+    <div class="dialog-body">
+      <div class="form-field">
+        <label class="form-label">Beschreibung</label>
+        <input type="text" id="privTerminDesc" class="text-input">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Datum</label>
+        <input type="date" id="privTerminDate" class="text-input">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-text" onclick="closeDialog()">Abbrechen</button>
+      <button class="btn-text primary-text" onclick="confirmAddPrivaterTermin()">Hinzufuegen</button>
+    </div>
+  </div>
+
+  <script src="license.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

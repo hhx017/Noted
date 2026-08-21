@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+builder-debug.yml
+*.blockmap
+
+# Release artifacts (attached to GitHub Releases instead)
+*.exe
+*.apk
+
+# Local test artifacts
+test-output.pdf
+test-pdf.js
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
